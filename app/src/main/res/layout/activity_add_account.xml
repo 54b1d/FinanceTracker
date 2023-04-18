@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="8dp"
+    tools:context=".AddAccountActivity">
+
+    <EditText
+        android:id="@+id/edit_account_name"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:hint="Account Name"
+        android:inputType="textCapWords"
+        android:textSize="20sp" />
+
+    <AutoCompleteTextView
+        android:id="@+id/edit_account_group_name"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:hint="Group Name"
+        android:textSize="20sp" />
+
+    <Button
+        android:id="@+id/btn_add_account"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:text="Add Account" />
+</LinearLayout>
