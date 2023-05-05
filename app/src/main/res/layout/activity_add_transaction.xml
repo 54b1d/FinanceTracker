@@ -93,6 +93,28 @@
         android:inputType="number"
         android:textSize="20sp" />
 
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <EditText
+            android:id="@+id/edit_donatable_percent"
+            android:layout_width="0dp"
+            android:layout_height="48dp"
+            android:layout_weight="1"
+            android:hint="15%"
+            android:inputType="number"
+            android:textSize="20sp" />
+
+        <CheckBox
+            android:id="@+id/checkbox_donate"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:checked="true"
+            android:text="Donate %" />
+    </LinearLayout>
+
     <EditText
         android:id="@+id/edit_narration"
         android:layout_width="match_parent"
@@ -115,6 +137,7 @@
         android:layout_gravity="center_horizontal"
         android:text="Update"
         android:visibility="gone" />
+
     <Button
         android:id="@+id/btnDeleteTransaction"
         android:layout_width="wrap_content"

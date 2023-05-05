@@ -1,5 +1,6 @@
 package com.sabid.financetracker
 
+import android.content.Intent
 import android.database.sqlite.SQLiteException
 import android.os.Bundle
 import android.widget.ArrayAdapter
@@ -20,6 +21,25 @@ class AddAccountActivity : AppCompatActivity() {
         binding.btnAddAccount.setOnClickListener {
             addAccountToDB()
         }
+        val listAccounts = db.getAllAccounts()
+        val accountNames = mutableListOf<String>()
+        if (listAccounts.isNotEmpty()) {
+            accountNames.clear()
+            for (account in listAccounts) {
+                accountNames.add(account.name)
+            }
+        }
+        binding.listAccounts.adapter = ArrayAdapter(
+            this, android.R.layout.select_dialog_item, accountNames
+        )
+        binding.listAccounts.setOnItemClickListener { parent, _, position, _ ->
+            val account = db.getAccountByName(parent.adapter.getItem(position).toString())
+            startActivity(
+                Intent(this, LedgerActivity::class.java).putExtra(
+                    "accountId", account?.id
+                ).putExtra("accountName", account?.name)
+            )
+        }
     }
 
     private fun addAccountToDB() {
@@ -33,7 +53,7 @@ class AddAccountActivity : AppCompatActivity() {
 
         if (name.isNotBlank() && groupId != 0) {
             try {
-                if (db.insertAccountData(name, groupId)){
+                if (db.insertAccountData(name, groupId)) {
                     Toast.makeText(this, "Added Account Successfully!", Toast.LENGTH_SHORT).show()
                 } else {
                     Toast.makeText(this, "Failed", Toast.LENGTH_SHORT).show()

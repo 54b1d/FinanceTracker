@@ -92,12 +92,28 @@ class TransactionsActivity : AppCompatActivity() {
             setDonatablePercentage()
         }
 
+        // todo remove this demo data
+        //fillDemoData()
+
+    }
+
+    private fun fillDemoData() {
+        // create accounts groups
+        db.insertAccountGroup("Tuition")
+        db.insertAccountGroup("Expenses")
+        db.insertAccountGroup("Salary")
+        db.insertAccountGroup("Donations")
+        // create accounts
+        db.insertAccountData("Samar", 1)
+        db.insertAccountData("Bus", 1)
+        db.insertAccountData("Donate", 1)
+        // create transactions
     }
 
     private fun setDonatablePercentage() {
         val v = EditText(this)
         v.inputType = InputType.TYPE_NUMBER_FLAG_SIGNED
-        v.hint = "0.10"
+        v.hint = "10"
 
         val builder = AlertDialog.Builder(this)
         builder.setTitle("Set Donatable Percentage")
@@ -130,18 +146,16 @@ class TransactionsActivity : AppCompatActivity() {
         c.moveToFirst()
         val income = c.getDouble(0)
         val expense = c.getDouble(1)
-        val donation = c.getDouble(2)
+        val donateAmount = c.getDouble(2)
+        val donated = c.getDouble(3)
         c.close()
-        val donationPercentage = PreferenceManager.getDefaultSharedPreferences(this)
-            .getFloat("donatablePercentage", 0.1F)
-        val donatable = income * donationPercentage
-        val donationLeft = donatable - donation
-        val leftOver = income - expense - donation
+        val donationLeft = donateAmount - donated
+        val leftOver = income - expense - donated
         binding.textIncome.text = "Income: $income"
         binding.textExpense.text = "Expense: $expense"
-        binding.textDonated.text = "Donated: $donation"
+        binding.textDonated.text = "Donated: $donated"
         binding.textDonatable.text =
-            "Donatable ($donationPercentage): ${donatable.roundToInt()}"
+            "Donate: ${donateAmount.roundToInt()}"
         binding.textDonationLeft.text = "Donation Left: ${donationLeft.roundToInt()}"
         binding.textLeft.text = "Leftover: $leftOver"
     }

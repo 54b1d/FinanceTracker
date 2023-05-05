@@ -57,6 +57,7 @@ class DBHelper(private val context: Context) : SQLiteOpenHelper(
     private val cTransactionTransactionType = "transaction_type"
     private val cTransactionAccountId = "account_id"
     private val cTransactionAmount = "amount"
+    private val cTransactionDonatePercentage = "donate_percentage"
     private val cTransactionNarration = "narration"
 
     override fun onCreate(db: SQLiteDatabase) {
@@ -66,7 +67,7 @@ class DBHelper(private val context: Context) : SQLiteOpenHelper(
 
         db.execSQL("CREATE TABLE [$tAccountGroups] ([$cAccountGroupId] INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL UNIQUE, [$cAccountGroupName] TEXT NOT NULL UNIQUE);")
 
-        db.execSQL("CREATE TABLE [$tTransactions] ([$cTransactionId] INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL UNIQUE, [$cTransactionDate] DATE NOT NULL,[$cTransactionTransactionType] INTEGER NOT NULL,[$cTransactionAccountId] INTEGER NOT NULL,[$cTransactionAmount] DOUBLE NOT NULL,[$cTransactionNarration] TEXT,FOREIGN KEY([$cTransactionTransactionType]) REFERENCES [$tTransactionTypes]([$cTransactionTypeId]),FOREIGN KEY([$cTransactionAccountId]) REFERENCES [$tAccounts]([$cAccountId]));")
+        db.execSQL("CREATE TABLE [$tTransactions] ([$cTransactionId] INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL UNIQUE, [$cTransactionDate] DATE NOT NULL,[$cTransactionTransactionType] INTEGER NOT NULL,[$cTransactionAccountId] INTEGER NOT NULL,[$cTransactionAmount] DOUBLE NOT NULL,[$cTransactionDonatePercentage] DOUBLE DEFAULT 0.0 NOT NULL,[$cTransactionNarration] TEXT,FOREIGN KEY([$cTransactionTransactionType]) REFERENCES [$tTransactionTypes]([$cTransactionTypeId]),FOREIGN KEY([$cTransactionAccountId]) REFERENCES [$tAccounts]([$cAccountId]));")
 
         db.execSQL("CREATE TABLE [$tTransactionTypes] ([$cTransactionTypeId] INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, [$cTransactionTypeName] TEXT NOT NULL UNIQUE);")
 
@@ -81,6 +82,7 @@ class DBHelper(private val context: Context) : SQLiteOpenHelper(
             transactions.transaction_type as transactionType,
             transaction_types.name as transactionTypeName,
             transactions.amount,
+            transactions.$cTransactionDonatePercentage,
             transactions.narration FROM transactions
             inner join accounts on accounts.id = transactions.account_id
             inner join transaction_types on transaction_types.id= transactions.transaction_type
@@ -95,7 +97,8 @@ class DBHelper(private val context: Context) : SQLiteOpenHelper(
             select
             (select ifnull(sum(amount), 0) from transactions where transaction_type=1) as income,
             (SELECT ifnull(sum(amount), 0) from transactions where transaction_type=2) as expense,
-            (SELECT ifnull(sum(amount), 0) from transactions where transaction_type=3) as donation;
+            (SELECT ifnull(sum(amount*$cTransactionDonatePercentage/100), 0) from transactions) as donateAmount,
+            (SELECT ifnull(sum(amount), 0) from transactions where transaction_type=3) as donated;
         """.trimIndent()
         )
     }
@@ -205,13 +208,19 @@ class DBHelper(private val context: Context) : SQLiteOpenHelper(
     }
 
     fun insertTransaction(
-        date: String, transactionType: Int, accountId: Int, amount: Double, narration: String
+        date: String,
+        transactionType: Int,
+        accountId: Int,
+        amount: Double,
+        donatePercentage: Double = 0.0,
+        narration: String
     ): Boolean {
         val contentValues = ContentValues()
         contentValues.put(cTransactionDate, date)
         contentValues.put(cTransactionTransactionType, transactionType)
         contentValues.put(cTransactionAccountId, accountId)
         contentValues.put(cTransactionAmount, amount)
+        contentValues.put(cTransactionDonatePercentage, donatePercentage)
         contentValues.put(cTransactionNarration, narration)
         val result = writableDatabase.insert(tTransactions, null, contentValues)
         return result != -1L
@@ -223,6 +232,7 @@ class DBHelper(private val context: Context) : SQLiteOpenHelper(
         transactionType: Int,
         accountId: Int,
         amount: Double,
+        donatePercentage: Double = 0.0,
         narration: String
     ): Boolean {
         val contentValues = ContentValues()
@@ -230,6 +240,7 @@ class DBHelper(private val context: Context) : SQLiteOpenHelper(
         contentValues.put(cTransactionTransactionType, transactionType)
         contentValues.put(cTransactionAccountId, accountId)
         contentValues.put(cTransactionAmount, amount)
+        contentValues.put(cTransactionDonatePercentage, donatePercentage)
         contentValues.put(cTransactionNarration, narration)
         val result = writableDatabase.update(
             tTransactions, contentValues, "$cTransactionId=?", arrayOf(transactionId.toString())
@@ -260,7 +271,8 @@ class DBHelper(private val context: Context) : SQLiteOpenHelper(
                 c.getInt(4),
                 c.getString(5),
                 c.getDouble(6),
-                c.getString(7)
+                c.getDouble(7),
+                c.getString(8)
             )
         }
         c.close()
@@ -289,7 +301,8 @@ class DBHelper(private val context: Context) : SQLiteOpenHelper(
                         c.getInt(4),
                         c.getString(5),
                         c.getDouble(6),
-                        c.getString(7)
+                        c.getDouble(7),
+                        c.getString(8)
                     )
                 )
             } while (c.moveToNext())
@@ -317,7 +330,8 @@ class DBHelper(private val context: Context) : SQLiteOpenHelper(
                         c.getInt(4),
                         c.getString(5),
                         c.getDouble(6),
-                        c.getString(7)
+                        c.getDouble(7),
+                        c.getString(8)
                     )
                 )
             } while (c.moveToNext())

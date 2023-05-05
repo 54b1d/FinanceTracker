@@ -2,6 +2,7 @@ package com.sabid.financetracker
 
 import android.app.DatePickerDialog
 import android.os.Bundle
+import android.preference.PreferenceManager
 import android.util.Log
 import android.view.View
 import android.widget.ArrayAdapter
@@ -11,6 +12,7 @@ import androidx.appcompat.app.AppCompatActivity
 import com.sabid.financetracker.databinding.ActivityAddTransactionBinding
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
+
 
 class AddTransactionActivity : AppCompatActivity() {
     lateinit var binding: ActivityAddTransactionBinding
@@ -53,6 +55,27 @@ class AddTransactionActivity : AppCompatActivity() {
         binding.btnAddTransaction.setOnClickListener { insertTransaction() }
         binding.btnUpdateTransaction.setOnClickListener { updateTransaction() }
         binding.btnDeleteTransaction.setOnClickListener { deleteTransaction() }
+        binding.checkboxDonate.setOnCheckedChangeListener { _, isChecked ->
+            binding.editDonatablePercent.isEnabled = isChecked
+            if (isChecked) binding.editDonatablePercent.visibility =
+                View.VISIBLE else binding.editDonatablePercent.visibility = View.INVISIBLE
+        }
+        binding.rbIncome.setOnCheckedChangeListener { _, isChecked ->
+            binding.checkboxDonate.isChecked = isChecked
+            // todo set percentage from shared pref if empty
+            if (binding.editDonatablePercent.text.isBlank()) {
+                binding.editDonatablePercent.setText(
+                    PreferenceManager.getDefaultSharedPreferences(this)
+                        .getFloat("donatablePercentage", 0f).toDouble().toString()
+                )
+            }
+        }
+        binding.rbExpense.setOnCheckedChangeListener { _, isChecked ->
+            if (isChecked) binding.checkboxDonate.isChecked = false
+        }
+        binding.rbDonation.setOnCheckedChangeListener { _, isChecked ->
+            if (isChecked) binding.checkboxDonate.isChecked = false
+        }
 
         if (intent.hasExtra("transaction_id")) {
             fillFields()
@@ -69,6 +92,8 @@ class AddTransactionActivity : AppCompatActivity() {
             binding.textDate.text = transaction.date
             binding.editAccountName.setText(transaction.accountName)
             binding.editAmount.setText(transaction.amount.toString())
+            binding.editDonatablePercent.setText(transaction.donatePercent.toString())
+            binding.checkboxDonate.isChecked = transaction.donatePercent != 0.0
             binding.editNarration.setText(transaction.narration)
             setTransactionType(transaction.transactionType)
         }
@@ -106,6 +131,9 @@ class AddTransactionActivity : AppCompatActivity() {
                     getTransactionTypeId(),
                     accountId,
                     binding.editAmount.text.toString().toDouble(),
+                    if (getTransactionTypeId() == 1 && binding.checkboxDonate.isChecked && binding.editDonatablePercent.text.toString()
+                            .trim().isNotBlank()
+                    ) binding.editDonatablePercent.text.toString().toDouble() else 0.0,
                     binding.editNarration.text.toString().trim()
                 )
             ) {
@@ -131,6 +159,9 @@ class AddTransactionActivity : AppCompatActivity() {
                     getTransactionTypeId(),
                     accountId,
                     binding.editAmount.text.toString().toDouble(),
+                    if (binding.checkboxDonate.isChecked && binding.editDonatablePercent.text.toString()
+                            .trim().isNotBlank()
+                    ) binding.editDonatablePercent.text.toString().toDouble() else 0.0,
                     binding.editNarration.text.toString().trim()
                 )
             ) {

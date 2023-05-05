@@ -21,4 +21,9 @@
         android:layout_gravity="center_horizontal"
         android:text="Add Group" />
 
+    <ListView
+        android:id="@+id/list_account_groups"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+
 </LinearLayout>
